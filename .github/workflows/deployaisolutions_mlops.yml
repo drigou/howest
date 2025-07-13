@@ -23,3 +23,13 @@ jobs:
             az extension add --name ml
             az configure --defaults group=${{ secrets.AZURE_RESOURCEGROUP }} workspace=${{ secrets.AZURE_WORKSPACE }} location=${{ secrets.AZURE_LOCATION }}
             az ml compute list
+
+      - name: Azure start up compute
+        uses: Azure/CLI@v2.1.0
+        with: 
+          azcliversion: 2.75.0          
+          inlineScript: |
+            az extension add --name ml
+            az configure --defaults group=${{ secrets.AZURE_RESOURCEGROUP }} workspace=${{ secrets.AZURE_WORKSPACE }} location=${{ secrets.AZURE_LOCATION }}            
+            az ml compute create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/environment/compute.yaml
+          continue-on-error: true # Quick fix. If compute already exists, just move on. 
