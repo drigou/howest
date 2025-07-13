@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-model-deployment
+  namespace: howest-ai-deployment  # Change to your namespace
+spec:
+  selector:
+    app: model-deployment # Must match labels of target pods
+  ports:
+    - protocol: TCP
+      port: 8000          # Port exposed by the service
+      targetPort: 8000    # Port on the container/pod
+      nodePort: 30001
+  type: NodePort          # Change to NodePort or LoadBalancer if needed

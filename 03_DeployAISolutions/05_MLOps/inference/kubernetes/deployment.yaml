@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: model-deployment
+  namespace: howest-ai-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model-deployment
+  template:
+    metadata:
+      labels:
+        app: model-deployment
+    spec:
+      containers:
+        - name: animal-cnn
+          image: drgou/animal-cnn:v1.0.0
+          ports: 
+            - containerPort: 8000 
+

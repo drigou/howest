@@ -1,0 +1,56 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+
+name: "training_component_cli"
+type: "command"
+description: "A componennt for training the AI model"
+version: 0.1.1
+is_deterministic: true
+resources:
+  instance_count: 1
+
+environment: azureml:training_environment_cli:0.1.0
+code: ./code
+command: "python train.py 
+            --training_folder ${{inputs.training_folder}}
+            --testing_folder ${{inputs.testing_folder}}
+            --epochs ${{inputs.epochs}}
+            --seed ${{inputs.seed}}
+            --initial_learning_rate ${{inputs.initial_learning_rate}}
+            --batch_size ${{inputs.batch_size}}
+            --patience ${{inputs.patience}}
+            --model_name ${{inputs.model_name}}
+            --output_folder ${{outputs.output_folder}}
+            "
+
+inputs:
+  training_folder:
+    type: uri_folder
+    optional: false
+  testing_folder:
+    type: uri_folder
+    optional: false
+  epochs:
+    type: number
+    optional: false
+  seed:
+    type: integer
+    optional: False
+  initial_learning_rate:
+    type: number
+    optional: False
+  batch_size:
+    type: integer
+    optional: false
+  patience:
+    type: integer
+    optional: false
+  model_name:
+    type: string
+    optional: false
+outputs:
+  output_folder:
+    type: uri_folder
+
+
+
+

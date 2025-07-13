@@ -1,0 +1,9 @@
+name: animal-cnn 
+
+services:
+  api:
+    build: ./inference
+    image: drgou/animal-cnn
+    ports: 
+      - 8000:8000
+    env_file: ./inference/.env
