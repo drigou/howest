@@ -10,6 +10,10 @@ jobs:
   check_azure_version:
     runs-on: ubuntu-latest
     steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Check out code repository
+        uses: actions/checkout@v4
+
       - name: Azure Login
         uses: azure/login@v2
         with:
