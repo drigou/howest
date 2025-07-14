@@ -36,4 +36,25 @@ jobs:
             az extension add --name ml
             az configure --defaults group=${{ secrets.AZURE_RESOURCEGROUP }} workspace=${{ secrets.AZURE_WORKSPACE }} location=${{ secrets.AZURE_LOCATION }}            
             az ml compute create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/environment/compute.yaml
-          continue-on-error: true # Quick fix. If compute already exists, just move on. 
+        continue-on-error: true # Quick fix. If compute already exists, just move on. 
+
+      - name: Azure -- Environment Setup
+        uses: Azure/CLI@v2.1.0
+        with:
+          azcliversion: 2.75.0
+          inlineScript: |
+            az extension add --name ml
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+            az ml environment create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/environment/preprocessing.yaml
+            az ml environment create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/environment/training.yaml
+
+      - name: Azure -- Component Setup
+        uses: Azure/CLI@v2.1.0
+        with:
+          azcliversion: 2.75.0
+          inlineScript: |
+            az extension add --name ml
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+            az ml components create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/components/dataprep/dataprep.yaml
+            az ml components create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/components/dataprep/train_test_split.yaml
+            az ml components create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/components/training/training.yaml
