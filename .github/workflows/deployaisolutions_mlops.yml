@@ -4,7 +4,8 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-
+env:
+  COMPUTE_INSTANCE_NAME: cli-created-machine
 
 jobs:
   check_azure_version:
@@ -55,6 +56,26 @@ jobs:
           inlineScript: |
             az extension add --name ml
             az configure --defaults group=${{ secrets.AZURE_RESOURCEGROUP }} workspace=${{ secrets.AZURE_WORKSPACE }} location=${{ secrets.AZURE_LOCATION }}  
-            az ml components create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/components/dataprep/dataprep.yaml
-            az ml components create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/components/dataprep/train_test_split.yaml
-            az ml components create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/components/training/training.yaml
+            az ml component create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/components/dataprep/dataprep.yaml
+            az ml component create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/components/dataprep/train_test_split.yaml
+            az ml component create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/components/training/training.yaml
+
+      - name: Azure -- Create and run job
+        uses: Azure/CLI@v2.1.0
+        with:
+          azcliversion: 2.75.0
+          inlineScript: |
+            az extension add --name ml
+            az configure --defaults group=${{ secrets.AZURE_RESOURCEGROUP }} workspace=${{ secrets.AZURE_WORKSPACE }} location=${{ secrets.AZURE_LOCATION }}  
+            az ml job create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/ai-pipeline.yaml --stream --set name=animals-classification-${{ github.sha }}-${{ github.run_id }}
+
+
+      - name: Azure -- Stop compute
+        uses: Azure/CLI@v2.1.0
+        with:
+          azcliversion: 2.75.0
+          inlineScript: |
+            az extension add --name ml
+            az configure --defaults group=${{ secrets.AZURE_RESOURCEGROUP }} workspace=${{ secrets.AZURE_WORKSPACE }} location=${{ secrets.AZURE_LOCATION }}  
+            az ml compute stop --name cli-created-machine
+        continue-on-error: true
