@@ -8,7 +8,7 @@ env:
   COMPUTE_INSTANCE_NAME: cli-created-machine
 
 jobs:
-  check_azure_version:
+  azure-pipeline:
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -67,7 +67,7 @@ jobs:
           inlineScript: |
             az extension add --name ml
             az configure --defaults group=${{ secrets.AZURE_RESOURCEGROUP }} workspace=${{ secrets.AZURE_WORKSPACE }} location=${{ secrets.AZURE_LOCATION }}  
-            az ml job create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/ai-pipeline.yaml --stream --set name=animals-classification-${{ github.sha }}-${{ github.run_id }}
+            az ml job create --file ./03_DeployAISolutions/05_MLOps/ai-pipeline/ai-pipeline.yaml --stream --set model_name=animals-classification-${{ github.sha }}-${{ github.run_id }}
 
 
       - name: Azure -- Stop compute
@@ -77,5 +77,34 @@ jobs:
           inlineScript: |
             az extension add --name ml
             az configure --defaults group=${{ secrets.AZURE_RESOURCEGROUP }} workspace=${{ secrets.AZURE_WORKSPACE }} location=${{ secrets.AZURE_LOCATION }}  
-            az ml compute stop --name cli-created-machine
+            az ml compute stop --name ${{ env.COMPUTE_INSTANCE_NAME }}
         continue-on-error: true
+
+  download:
+    needs: azure-pipeline # New!!
+    runs-on: ubuntu-24.04
+    steps:
+
+    - name: Check out repository
+      uses: actions/checkout@v4
+      
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Azure -- Download Model
+      uses: azure/CLI@v2.1.0
+      with:
+        azcliversion: 2.64.0
+        inlineScript: |
+          az extension add --name ml -y
+          az configure --defaults group=${{ secrets.AZURE_RESOURCEGROUP }} workspace=${{ secrets.AZURE_WORKSPACE }} location=${{ secrets.AZURE_LOCATION }}  
+          VERSION=$(az ml model list -n animal-classification --query "[0].version" -o tsv)
+          az ml model download --name animal-classification --version $VERSION  --download-path ./inference
+
+    - name: Docker -- Upload API code from Inference
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: docker-config
+        path: inference
